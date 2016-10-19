@@ -17,12 +17,18 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import android.widget.Toast;
+
 import java.util.List;
 
-public class Report extends AppCompatActivity
+public class Report extends AppCompatActivity implements Callback<List<Donation>>
 {
   private ListView listView;
   private DonationApp app;
+  private DonationAdapter adapter;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -32,8 +38,11 @@ public class Report extends AppCompatActivity
     app = (DonationApp) getApplication();
 
     listView = (ListView) findViewById(R.id.reportList);
-    DonationAdapter adapter = new DonationAdapter(this, app.donations);
+    adapter = new DonationAdapter (this, app.donations);
     listView.setAdapter(adapter);
+
+    Call<List<Donation>> call = (Call<List<Donation>>) app.donationService.getAllDonations();
+    call.enqueue(this);
   }
 
   @Override
@@ -55,6 +64,17 @@ public class Report extends AppCompatActivity
     return true;
   }
 
+  @Override
+  public void onResponse(Call<List<Donation>> call, Response<List<Donation>> response) {
+    adapter.donations = response.body();
+    adapter.notifyDataSetChanged();
+  }
+
+  @Override
+  public void onFailure(Call<List<Donation>> call, Throwable t) {
+    Toast toast = Toast.makeText(this, "Error retrieving donations", Toast.LENGTH_LONG);
+    toast.show();
+  }
 }
 
 class DonationAdapter extends ArrayAdapter<Donation>
