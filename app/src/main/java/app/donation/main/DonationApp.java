@@ -7,15 +7,28 @@ import android.app.Application;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
+import app.donation.model.Candidate;
 import app.donation.model.User;
 import app.donation.model.Donation;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class DonationApp extends Application
 {
+  public DonationService donationService;
+  public boolean         donationServiceAvailable = false;
+  public String          service_url  = "http://10.0.2.2:4000";   // Standard Emulator IP Address
+
   public final int       target       = 10000;
   public int             totalDonated = 0;
-  public List <Donation> donations    = new ArrayList<Donation>();
-  public List <User>     users        = new ArrayList<User>();
+
+  public User             currentUser;
+  public List <Donation>  donations    = new ArrayList<Donation>();
+  public List <User>      users        = new ArrayList<User>();
+  public List <Candidate> candidates   = new ArrayList<Candidate>();
 
   public boolean newDonation(Donation donation)
   {
@@ -37,7 +50,16 @@ public class DonationApp extends Application
   public void onCreate()
   {
     super.onCreate();
-    Log.v("Donate", "Donation App Started");
+    super.onCreate();
+    Gson gson = new GsonBuilder().create();
+
+    Retrofit retrofit = new Retrofit.Builder()
+        .baseUrl(service_url)
+        .addConverterFactory(GsonConverterFactory.create(gson))
+        .build();
+    donationService = retrofit.create(DonationService.class);
+
+    Log.v("Donation", "Donation App Started");
   }
 
   public void newUser(User user)
@@ -51,6 +73,7 @@ public class DonationApp extends Application
     {
       if (user.email.equals(email) && user.password.equals(password))
       {
+        currentUser = user;
         return true;
       }
     }
