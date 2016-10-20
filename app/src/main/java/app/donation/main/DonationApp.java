@@ -7,18 +7,19 @@ import android.app.Application;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
+import app.donation.model.Token;
 import app.donation.model.Candidate;
 import app.donation.model.User;
 import app.donation.model.Donation;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
-public class DonationApp extends Application
+public class DonationApp extends Application implements Callback<Token>
 {
-  public DonationService donationService;
+  public DonationServiceOpen donationServiceOpen;
+  public DonationService     donationService;
+
   public boolean         donationServiceAvailable = false;
   public String          service_url  = "http://10.0.2.2:4000";   // Standard Emulator IP Address
 
@@ -27,7 +28,6 @@ public class DonationApp extends Application
 
   public User             currentUser;
   public List <Donation>  donations    = new ArrayList<Donation>();
-  public List <User>      users        = new ArrayList<User>();
   public List <Candidate> candidates   = new ArrayList<Candidate>();
 
   public boolean newDonation(Donation donation)
@@ -50,34 +50,31 @@ public class DonationApp extends Application
   public void onCreate()
   {
     super.onCreate();
-    super.onCreate();
-    Gson gson = new GsonBuilder().create();
-
-    Retrofit retrofit = new Retrofit.Builder()
-        .baseUrl(service_url)
-        .addConverterFactory(GsonConverterFactory.create(gson))
-        .build();
-    donationService = retrofit.create(DonationService.class);
-
+    donationServiceOpen = RetrofitServiceFactory.createService(DonationServiceOpen.class);
     Log.v("Donation", "Donation App Started");
-  }
-
-  public void newUser(User user)
-  {
-    users.add(user);
   }
 
   public boolean validUser (String email, String password)
   {
-    for (User user : users)
-    {
-      if (user.email.equals(email) && user.password.equals(password))
-      {
-        currentUser = user;
-        return true;
-      }
-    }
-    return false;
+    User user = new User ("", "", email, password);
+    donationServiceOpen.authenticate(user);
+    Call<Token> call = (Call<Token>) donationServiceOpen.authenticate (user);
+    call.enqueue(this);
+    return true;
   }
 
+  @Override
+  public void onResponse(Call<Token> call, Response<Token> response) {
+    Token auth = response.body();
+    currentUser = auth.user;
+    donationService =  RetrofitServiceFactory.createService(DonationService.class, auth.token);
+    Log.v("Donation", "Authenticated " + currentUser.firstName + ' ' + currentUser.lastName);
+  }
+
+  @Override
+  public void onFailure(Call<Token> call, Throwable t) {
+    Toast toast = Toast.makeText(this, "Unable to authenticate with Donation Service", Toast.LENGTH_SHORT);
+    toast.show();
+    Log.v("Donation", "Failed to Authenticated!");
+  }
 }
