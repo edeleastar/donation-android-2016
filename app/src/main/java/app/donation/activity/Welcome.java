@@ -1,11 +1,8 @@
 package app.donation.activity;
 
 import app.donation.R;
-import app.donation.activity.Login;
-import app.donation.activity.Signup;
 import app.donation.main.DonationApp;
 import app.donation.model.Candidate;
-import app.donation.model.User;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -47,7 +44,6 @@ public class Welcome extends AppCompatActivity
 
       @Override
       public void onFailure(Call<List<Candidate>> call, Throwable t) {
-        app.donationServiceAvailable = false;
         serviceUnavailableMessage();
       }
     });
@@ -55,7 +51,14 @@ public class Welcome extends AppCompatActivity
 
   public void loginPressed (View view)
   {
-     startActivity (new Intent(this, Login.class));
+    if (app.donationServiceAvailable)
+    {
+      startActivity (new Intent(this, Login.class));
+    }
+    else
+    {
+      serviceUnavailableMessage();
+    }
   }
 
   public void signupPressed (View view)
@@ -72,12 +75,14 @@ public class Welcome extends AppCompatActivity
 
   void serviceUnavailableMessage()
   {
+    app.donationServiceAvailable = false;
     Toast toast = Toast.makeText(this, "Donation Service Unavailable. Try again later", Toast.LENGTH_LONG);
     toast.show();
   }
 
   void serviceAvailableMessage()
   {
+    app.donationServiceAvailable = true;
     Toast toast = Toast.makeText(this, "Donation Contacted Successfully", Toast.LENGTH_LONG);
     toast.show();
   }
