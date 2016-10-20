@@ -18,8 +18,7 @@ import android.widget.Toast;
 
 import java.util.List;
 
-
-public class Welcome extends AppCompatActivity implements Callback<List<User>>
+public class Welcome extends AppCompatActivity
 {
   private DonationApp app;
 
@@ -36,14 +35,13 @@ public class Welcome extends AppCompatActivity implements Callback<List<User>>
   public void onResume()
   {
     super.onResume();
-    app.currentUser = null;
-    Call<List<User>> call1 = (Call<List<User>>) app.donationService.getAllUsers();
-    call1.enqueue(this);
+    app.currentUser = null;;
 
-    Call<List<Candidate>> call2 = (Call<List<Candidate>>) app.donationService.getAllCandidates();
-    call2.enqueue(new Callback<List<Candidate>>() {
+    Call<List<Candidate>> call = (Call<List<Candidate>>) app.donationServiceOpen.getAllCandidates();
+    call.enqueue(new Callback<List<Candidate>>() {
       @Override
       public void onResponse(Call<List<Candidate>> call, Response<List<Candidate>> response) {
+        serviceAvailableMessage();
         app.candidates = response.body();
       }
 
@@ -53,34 +51,11 @@ public class Welcome extends AppCompatActivity implements Callback<List<User>>
         serviceUnavailableMessage();
       }
     });
-
-  }
-
-  @Override
-  public void onResponse(Call<List<User>> call, Response<List<User>> response)
-  {
-    serviceAvailableMessage();
-    app.users = response.body();
-    app.donationServiceAvailable = true;
-  }
-
-  @Override
-  public void onFailure(Call<List<User>> call, Throwable t)
-  {
-    app.donationServiceAvailable = false;
-    serviceUnavailableMessage();
   }
 
   public void loginPressed (View view)
   {
-    if (app.donationServiceAvailable)
-    {
-      startActivity (new Intent(this, Login.class));
-    }
-    else
-    {
-      serviceUnavailableMessage();
-    }
+     startActivity (new Intent(this, Login.class));
   }
 
   public void signupPressed (View view)
