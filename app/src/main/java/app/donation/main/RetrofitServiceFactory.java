@@ -37,7 +37,7 @@ public class RetrofitServiceFactory
         {
           Request original = chain.request();
           Request.Builder requestBuilder = original.newBuilder()
-              .header("Authorization", authToken)
+              .header("Authorization", "bearer " + authToken)
               .method(original.method(), original.body());
 
           Request request = requestBuilder.build();
