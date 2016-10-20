@@ -13,7 +13,6 @@ import app.donation.model.User;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
 
 public class Signup extends AppCompatActivity implements Callback<User>
 {
@@ -37,14 +36,15 @@ public class Signup extends AppCompatActivity implements Callback<User>
     User user = new User(firstName.getText().toString(), lastName.getText().toString(), email.getText().toString(), password.getText().toString());
 
     DonationApp app = (DonationApp) getApplication();
-    Call<User> call = (Call<User>) app.donationService.createUser(user);
+    Call<User> call = (Call<User>) app.donationServiceOpen.createUser(user);
     call.enqueue(this);
   }
 
   @Override
   public void onResponse(Call<User> call, Response<User> response)
   {
-    app.users.add(response.body());
+    Toast toast = Toast.makeText(this, "Signup Successful", Toast.LENGTH_LONG);
+    toast.show();
     startActivity(new Intent(this, Welcome.class));
   }
 
